@@ -3,81 +3,89 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sde-pinh <sde-pinh@student.42.rio>         +#+  +:+       +#+        */
+/*   By: mmedeiro <mmedeiro@student.42.rio>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/05/18 18:18:53 by sde-pinh          #+#    #+#             */
-/*   Updated: 2022/06/06 14:04:19 by sde-pinh         ###   ########.fr       */
+/*   Created: 2022/05/18 17:03:28 by mmedeiro          #+#    #+#             */
+/*   Updated: 2022/05/30 13:04:14 by mmedeiro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "libft.h"
 
-static int	max_div(char const *s, char c)
+static void	free_all(char **pointer, int split)
 {
-	int	max;
-	int	count;
-
-	max = 0;
-	count = 0;
-	while (s[count] != '\0')
+	while (split >= 0)
 	{
-		if (s[count] == c && (count != 0 || s[count - 1] != c))
-			max++;
-		count++;
+		free (pointer[split]);
+		split--;
 	}
-	return (max + 1);
+	free (pointer);
 }
 
-static void	free_array(char **new, int div)
+static int	how_many_splits(char const *s, char c)
 {
-	while (div >= 0)
+	int	split;
+	int	counter;
+	int	check;
+
+	split = 0;
+	counter = 0;
+	check = 0;
+	while (s[counter])
 	{
-		free(new[div]);
-		div--;
+		if (s[counter] != c && check == 0)
+		{
+			split++;
+			check = 1;
+		}
+		else if (s[counter] == c)
+			check = 0;
+		counter++;
 	}
-	free(new);
+	return (split);
 }
 
-static int	new_string(char const *s, char c, char **new, int div)
+static int	put_string(char **pointer, int split, char const *s, char c)
 {
 	int	size;
 
 	size = 0;
-	while (s[size] != c && s[size] != '\0')
+	while (s[size] != '\0' && s[size] != c)
 		size++;
-	new[div] = ft_substr(s, 0, size);
-	if (!new[div])
+	pointer[split] = ft_substr (s, 0, size);
+	if (!pointer[split])
 	{
-		free_array(new, div);
+		free_all (pointer, split);
 		return (-1);
 	}
-	return (size + 1);
+	return (size);
 }
 
 char	**ft_split(char const *s, char c)
 {
-	char	**new;
-	int		count;
-	int		div;
-	int		maximus;
+	char	**pointer;
+	int		counter;
+	int		split;
+	int		max;
 
-	maximus = max_div(s, c);
-	new = malloc((maximus + 1) * sizeof(char *));
-	if (!new)
+	split = 0;
+	max = how_many_splits(s, c);
+	pointer = malloc((max + 1) * sizeof(char *));
+	if (!pointer)
 		return (NULL);
-	div = 0;
-	while (div < maximus && *s)
+	while (split < max && *s)
 	{
 		while (*s == c)
 			s++;
 		if (*s)
 		{
-			count = new_string(s, c, new, div);
-			if (count == -1)
+			counter = put_string(pointer, split, s, c);
+			if (counter == -1)
 				return (NULL);
-				div++;
-		s += count;
+			s += counter;
+			split++;
 		}
 	}
-	new[div] = NULL;
-	return (new);
+	pointer[split] = NULL;
+	return (pointer);
 }
